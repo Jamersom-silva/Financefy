@@ -32,7 +32,8 @@ INSTALLED_APPS = [
     "drf_spectacular",  # ✅ Documentação da API
 
     # Apps locais
-    "finance",
+    'core.apps.CoreConfig',
+
 ]
 
 # =====================================================
