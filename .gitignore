@@ -1,27 +1,24 @@
-# Django
-*.pyc
-__pycache__/
-db.sqlite3
-media/
+# Logs
+logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Virtualenv (geralmente gerado automaticamente)
-.env/
-.venv/
-venv/
-env/
-*.pyc
+node_modules
+dist
+dist-ssr
+*.local
 
-# React (frontend)
-node_modules/
-build/
-.env
-
-# IDEs e editores
-.idea/
-.vscode/
-*.swp
-
-# Outros arquivos temporários
-*.bak
-*.tmp
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
