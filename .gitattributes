@@ -1,0 +1,30 @@
+# ==============================
+# 🔹 Normalização de Quebra de Linha
+# ==============================
+
+# Força todos os arquivos de texto a usar LF
+* text=auto eol=lf
+
+# ==============================
+# 🔹 Exceções (binários)
+# ==============================
+
+# Imagens / PDFs / arquivos binários
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+
+# Fontes
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+
+# ==============================
+# 🔹 Node e builds
+# ==============================
+dist/ binary
+build/ binary
