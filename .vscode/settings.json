@@ -1,0 +1,16 @@
+{
+  "css.validate": false,
+  "scss.validate": false,
+  "less.validate": false,
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "tailwindCSS.includeLanguages": {
+    "plaintext": "html",
+    "postcss": "css"
+  },
+  "tailwindCSS.experimental.configFile": "tailwind.config.js",
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
+}
