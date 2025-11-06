@@ -79,6 +79,7 @@ export default function Navbar() {
     { to: "/tips", label: "Dicas" },
     { to: "/goals", label: "Metas" },
     { to: "/planning", label: "Planejamento" },
+    { to: "/books", label: "Livros" },
   ];
 
   return (

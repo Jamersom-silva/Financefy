@@ -23,7 +23,7 @@ import Accounts from "../pages/Dashboard/Accounts";
 import Categories from "../pages/Dashboard/Categories";
 import Transactions from "../pages/Dashboard/Transactions";
 import Attachments from "../pages/Dashboard/Attachments"; // ✅ Novo módulo de anexos
-
+import Books from "../pages/Books";
 // =====================================================
 // 🔹 Páginas educacionais / complementares
 // =====================================================
@@ -74,6 +74,7 @@ export default function AppRoutes() {
           <Route path="categories" element={<Categories />} />
           <Route path="transactions" element={<Transactions />} />
           <Route path="attachments" element={<Attachments />} /> {/* ✅ NOVO módulo */}
+          
         </Route>
 
         {/* =====================================================
@@ -82,7 +83,7 @@ export default function AppRoutes() {
         <Route path="/tips" element={<TipsPage />} />
         <Route path="/goals" element={<GoalsPage />} />
         <Route path="/planning" element={<PlanningPage />} />
-
+        <Route path="books" element={<Books />} />
         {/* =====================================================
             🔹 Fallback (404 → Redireciona para Home)
         ===================================================== */}
