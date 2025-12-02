@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+/* ✅ Definição do tema - Tailwind entende e aplica corretamente */
+@theme {
+  --font-sans: "Inter", system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  /* 🎨 Paleta de Cores */
+  --color-primary: #6c63ff;
+  --color-primary-hover: #5b54e7;
+  --color-secondary: #f8f9ff;
+  --color-accent: #ffb703;
+  --color-danger: #ef4444;
+  --color-success: #10b981;
+  --color-dark: #1f2937;
+  --color-light: #f9fafb;
+
+  /* 🧱 Tipografia */
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 48px;
+}
+
+/* 🌍 Reset + base */
+@layer base {
+  html,
+  body {
+    @apply font-sans text-[--color-dark] bg-[--color-secondary];
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* ✨ Utilitários globais */
+@layer components {
+  .container {
+    @apply mx-auto max-w-6xl px-6;
+  }
+
+  .btn-primary {
+    @apply rounded-xl bg-[--color-primary] px-6 py-3 font-semibold text-white transition-all duration-200 hover:bg-[--color-primary-hover];
+  }
+
+  .btn-outline {
+    @apply rounded-xl border-2 border-[--color-primary] px-6 py-3 font-semibold text-[--color-primary] transition-all duration-200 hover:bg-[--color-primary] hover:text-white;
+  }
+
+  /* 🧭 Navbar base */
+  .navbar {
+    @apply container flex items-center justify-between py-5;
+  }
+
+  .nav-link {
+    @apply font-medium text-[--color-dark] transition-colors duration-200 hover:text-[--color-primary];
+  }
+
+  /* 💸 Hero section */
+  .hero {
+    @apply container flex flex-col items-center justify-between gap-10 py-20 md:flex-row;
+  }
+
+  .hero-title {
+    @apply text-3xl leading-tight font-extrabold text-[--color-dark] md:text-5xl;
+  }
+
+  .hero-subtitle {
+    @apply mt-4 max-w-xl text-lg text-gray-600 md:text-xl;
+  }
+
+  .hero-btns {
+    @apply mt-8 flex gap-4;
+  }
+
+  /* ⚙️ Footer */
+  .footer {
+    @apply mt-20 bg-[--color-dark] py-8 text-white;
+  }
+
+  .footer-content {
+    @apply container flex flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left;
+  }
+}
