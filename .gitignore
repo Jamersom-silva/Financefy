@@ -1,28 +1,70 @@
-# ================
-# BACKEND (Django)
-# ================
-backend/__pycache__/
+# ============================================================
+# 🐍 DJANGO BACKEND
+# ============================================================
+
+# Bytecode / cache
+backend/**/__pycache__/
 backend/**/*.pyc
 backend/**/*.pyo
+
+# Virtual environment
 backend/.venv/
+backend/venv/
+backend/env/
+
+# SQLite database (local only)
 backend/db.sqlite3
 backend/db.sqlite3-journal
+
+# Uploaded files
 backend/media/
+
+# Collected static files
 backend/staticfiles/
+
+# Environment variables (important)
 backend/.env
 
-# ================
-# FRONTEND (React)
-# ================
+# Logs
+backend/*.log
+
+
+# ============================================================
+# ⚛️ REACT FRONTEND
+# ============================================================
+
+# Node modules
 financefy-web/node_modules/
+
+# Production build
 financefy-web/dist/
-financefy-web/.vscode/
+financefy-web/build/
+
+# Environment files (do NOT commit keys)
 financefy-web/.env
 financefy-web/.env.*
+financefy-web/.env.local
 
-# ================
-# Global ignores
-# ================
+# Editor folders inside frontend
+financefy-web/.vscode/
+
+
+# ============================================================
+# 🧰 GLOBAL IGNORE
+# ============================================================
+
+# OS files
 .DS_Store
 Thumbs.db
+
+# Logs
 *.log
+
+# Swap / temp files
+*.swp
+*.tmp
+*.bak
+
+# Project-wide editor folders
+.vscode/
+.idea/
