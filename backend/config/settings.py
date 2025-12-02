@@ -1,21 +1,27 @@
+# ================================================================
+#  FINANCEFY — SETTINGS.PY COMPLETO E SEGURO
+#  Inclui: SimpleJWT, Cookies HttpOnly, DRF, CORS, Spectacular,
+#          ENUM_NAME_OVERRIDES, Login Throttle
+# ================================================================
+
 from pathlib import Path
 from datetime import timedelta
-import os
+from decouple import config, Csv
+import dj_database_url
 
-# =====================================================
-# 🔹 DIRETÓRIOS E CONFIGURAÇÕES BÁSICAS
-# =====================================================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "dev-secret"
-DEBUG = True
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+# ================================================================
+# 🔹 VARIÁVEIS DE AMBIENTE
+# ================================================================
+SECRET_KEY = config("SECRET_KEY", default="change-this-in-production")
+DEBUG = config("DEBUG", default=True, cast=bool)
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="127.0.0.1,localhost", cast=Csv())
 
-# =====================================================
-# 🔹 APLICAÇÕES INSTALADAS
-# =====================================================
+# ================================================================
+# 🔹 APPS INSTALADOS
+# ================================================================
 INSTALLED_APPS = [
-    # Django padrão
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -23,38 +29,47 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    # Terceiros
     "rest_framework",
     "rest_framework.authtoken",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
+
     "django_filters",
     "corsheaders",
-    "drf_spectacular",  # ✅ Documentação da API
+    "drf_spectacular",
 
-    # Apps locais
-    'core.apps.CoreConfig',
-
+    "core",
 ]
 
-# =====================================================
-# 🔹 MIDDLEWARES
-# =====================================================
+# ================================================================
+# 🔹 MIDDLEWARE
+# ================================================================
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",  # Deve vir antes do CommonMiddleware
-    "django.middleware.common.CommonMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True  # ✅ Permite todas as origens no modo dev
+# ================================================================
+# 🔹 CORS / CSRF
+# ================================================================
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = config(
+    "CORS_ALLOWED_ORIGINS",
+    default="http://localhost:5173,http://127.0.0.1:5173",
+    cast=Csv(),
+)
 
-# =====================================================
-# 🔹 CONFIGURAÇÕES PRINCIPAIS
-# =====================================================
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
+
+# ================================================================
+# 🔹 URL / TEMPLATES / WSGI
+# ================================================================
 ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
@@ -75,39 +90,44 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# =====================================================
-# 🔹 BANCO DE DADOS (SQLite)
-# =====================================================
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+# ================================================================
+# 🔹 DATABASE
+# ================================================================
+DATABASE_URL = config("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
+DATABASES = {"default": dj_database_url.parse(DATABASE_URL)}
 
-# =====================================================
-# 🔹 VALIDAÇÃO DE SENHAS (desativada no modo dev)
-# =====================================================
-AUTH_PASSWORD_VALIDATORS = []
+# ================================================================
+# 🔹 SENHAS
+# ================================================================
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
 
-# =====================================================
-# 🔹 LOCALIZAÇÃO E TEMPO
-# =====================================================
+# ================================================================
+# 🔹 INTERNACIONALIZAÇÃO
+# ================================================================
 LANGUAGE_CODE = "pt-br"
 TIME_ZONE = "America/Sao_Paulo"
 USE_I18N = True
 USE_TZ = True
 
-# =====================================================
-# 🔹 ARQUIVOS ESTÁTICOS
-# =====================================================
-STATIC_URL = "static/"
+# ================================================================
+# 🔹 STATIC / MEDIA
+# ================================================================
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# =====================================================
-# 🔹 CONFIGURAÇÃO DO DJANGO REST FRAMEWORK
-# =====================================================
+# ================================================================
+# 🔹 DRF CONFIG (HARDENED)
+# ================================================================
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -120,39 +140,62 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ),
-    # ✅ Necessário para a documentação (drf-spectacular)
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+
+    # 🔥 Throttling global
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "50/minute",
+        "user": "500/minute",
+        # throttle personalizado para login
+        "login": "10/minute",
+    },
 }
 
-# =====================================================
-# 🔹 CONFIGURAÇÃO DO JWT (TOKEN)
-# =====================================================
+# ================================================================
+# 🔹 SIMPLE JWT — SEGURO
+# ================================================================
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=4),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+
     "AUTH_HEADER_TYPES": ("Bearer",),
+
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
 }
 
-# =====================================================
-# 🔹 CONFIGURAÇÃO DO DRF-SPECTACULAR (Documentação)
-# =====================================================
+JWT_REFRESH_COOKIE_NAME = config("JWT_REFRESH_COOKIE_NAME", default="financefy_refresh")
+
+# ================================================================
+# 🔹 DRF SPECTACULAR
+# ================================================================
 SPECTACULAR_SETTINGS = {
     "TITLE": "Financefy API",
-    "DESCRIPTION": "API de gerenciamento financeiro pessoal, com contas, categorias, transações e anexos de PDFs.",
+    "DESCRIPTION": "Sistema financeiro pessoal",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-    "COMPONENT_SPLIT_REQUEST": True,
-    "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
+
+    # Corrige collisions de enums tipo "Type001", "Type002"
+    "ENUM_NAME_OVERRIDES": {
+        "Transaction.type": "TransactionType",
+        "Category.type": "CategoryType",
+    },
 }
 
-# =====================================================
-# 🔹 UPLOADS DE ARQUIVOS (PDFs, imagens etc.)
-# =====================================================
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
-
-# Estrutura criada automaticamente:
-# media/
-# ├── attachments/
-# │   ├── fatura-caixa.pdf
-# │   ├── comprovante-pagamento.pdf
+# ================================================================
+# 🔹 PRODUÇÃO — SEGURANÇA
+# ================================================================
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 3600
+    SESSION_COOKIE_SAMESITE = "Lax"
+    CSRF_COOKIE_SAMESITE = "Lax"
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = "DENY"

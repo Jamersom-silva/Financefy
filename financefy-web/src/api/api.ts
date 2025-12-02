@@ -1,7 +1,5 @@
 // ===============================================================
-// 🔹 src/api/api.ts
-// Centraliza todas as chamadas à API do backend Django REST Framework
-// com suporte a token JWT, tratamento de erros e upload de arquivos.
+// 🔹 src/api/api.ts — Cliente HTTP centralizado
 // ===============================================================
 
 import { toast } from "react-hot-toast";
@@ -9,7 +7,9 @@ import { toast } from "react-hot-toast";
 const API_BASE_URL = "http://127.0.0.1:8000/api/v1";
 
 /**
- * 🔹 Retorna headers com token JWT, se existir
+ * --------------------------------------------------------------
+ * 🔹 Pega o token salvo no localStorage
+ * --------------------------------------------------------------
  */
 function getAuthHeaders(): Record<string, string> {
   const token = localStorage.getItem("token");
@@ -17,14 +17,18 @@ function getAuthHeaders(): Record<string, string> {
 }
 
 /**
- * 🔹 Helper: verifica se é um objeto válido
+ * --------------------------------------------------------------
+ * 🔹 Checa se é um objeto
+ * --------------------------------------------------------------
  */
 function isRecord(x: unknown): x is Record<string, unknown> {
   return typeof x === "object" && x !== null && !Array.isArray(x);
 }
 
 /**
- * 🔹 Trata respostas de erro do backend (400–500)
+ * --------------------------------------------------------------
+ * 🔹 Tratamento centralizado de erros HTTP
+ * --------------------------------------------------------------
  */
 async function handleErrorResponse(res: Response): Promise<never> {
   let message = `Erro ${res.status}: ${res.statusText}`;
@@ -36,7 +40,10 @@ async function handleErrorResponse(res: Response): Promise<never> {
         message = String(data.detail);
       } else {
         message = Object.entries(data)
-          .map(([key, val]) => `${key}: ${Array.isArray(val) ? val.join(", ") : val}`)
+          .map(
+            ([key, val]) =>
+              `${key}: ${Array.isArray(val) ? val.join(", ") : val}`
+          )
           .join(" | ");
       }
     }
@@ -45,10 +52,11 @@ async function handleErrorResponse(res: Response): Promise<never> {
     if (text) message = text;
   }
 
-  // ⚠️ Tratamento específico para token expirado ou inválido
+  // Sessão expirada → logout automático
   if (res.status === 401) {
     toast.error("⚠️ Sessão expirada. Faça login novamente.");
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     window.location.href = "/login";
   } else {
     toast.error(message);
@@ -58,15 +66,19 @@ async function handleErrorResponse(res: Response): Promise<never> {
 }
 
 /**
- * 🔹 GET genérico (lista ou detalhe)
+ * --------------------------------------------------------------
+ * 🔹 GET genérico
+ * --------------------------------------------------------------
  */
 export async function apiGet<T = unknown>(
-  endpoint: string,
-  token?: string
+  endpoint: string
 ): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
     method: "GET",
-    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : getAuthHeaders()) },
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
   });
 
   if (!res.ok) await handleErrorResponse(res);
@@ -74,19 +86,21 @@ export async function apiGet<T = unknown>(
 }
 
 /**
- * 🔹 POST / PUT / DELETE genérico (com suporte a FormData)
+ * --------------------------------------------------------------
+ * 🔹 POST / PUT / DELETE genérico
+ * --------------------------------------------------------------
  */
 export async function apiRequest<T = unknown>(
   endpoint: string,
   method: "POST" | "PUT" | "DELETE" = "POST",
   body?: Record<string, unknown> | FormData,
-  isMultipart = false,
-  token?: string
+  isMultipart = false
 ): Promise<T> {
   const headers: Record<string, string> = {};
 
   if (!isMultipart) headers["Content-Type"] = "application/json";
-  Object.assign(headers, token ? { Authorization: `Bearer ${token}` } : getAuthHeaders());
+
+  Object.assign(headers, getAuthHeaders());
 
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
     method,
@@ -96,24 +110,29 @@ export async function apiRequest<T = unknown>(
 
   if (!res.ok) await handleErrorResponse(res);
 
+  // DELETE → retorna vazio
   if (res.status === 204 || method === "DELETE") {
-    toast.success("Operação concluída com sucesso!");
+    toast.success("Operação concluída!");
     return {} as T;
   }
 
   try {
     const data = (await res.json()) as T;
-    if (method === "POST") toast.success("Registro criado com sucesso!");
-    if (method === "PUT") toast.success("Registro atualizado com sucesso!");
+
+    if (method === "POST") toast.success("Criado com sucesso!");
+    if (method === "PUT") toast.success("Atualizado com sucesso!");
+
     return data;
   } catch {
-    toast.success("Operação concluída!");
+    toast.success("Operação realizada!");
     return {} as T;
   }
 }
 
 /**
- * 🔹 Upload direto (mantido por compatibilidade)
+ * --------------------------------------------------------------
+ * 🔹 Upload de arquivos (PDFs, Imagens etc.)
+ * --------------------------------------------------------------
  */
 export async function apiUpload<T = unknown>(
   endpoint: string,

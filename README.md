@@ -1,126 +1,175 @@
-# 📊 **Financefy** - Sistema de Controle Financeiro
+💸 Financefy
 
-## Descrição 🚀
+Bem-vindo ao Financefy — seu novo sistema pessoal de controle financeiro ✨
+Criado para ajudar pessoas a organizarem suas finanças de forma simples, visual e inteligente.
 
-**Financefy** é um sistema completo de controle financeiro que permite aos usuários gerenciar suas contas, transações e anexos relacionados a faturas e comprovantes. O projeto foi desenvolvido com **Django** no backend e **React** no frontend, utilizando um banco de dados SQLite para armazenar os dados de maneira simples e eficiente. O sistema oferece a possibilidade de realizar transações financeiras, categorizá-las, gerar relatórios financeiros mensais e por categoria, e gerenciar anexos como faturas e comprovantes.
+A ideia por trás do Financefy é oferecer uma ferramenta moderna e segura onde cada usuário pode acompanhar seus gastos, receitas, extratos, relatórios e ainda anexar comprovantes e faturas em PDF.
+Tudo isso com uma experiência fluida no frontend React e uma API robusta em Django.
 
----
+🎯 Propósito do Projeto
 
-## Funcionalidades 🛠️
+O Financefy nasceu como um projeto completo para demonstrar habilidades reais de desenvolvimento full stack.
+Aqui você encontra:
 
-- **Gestão de Contas**: O usuário pode criar, editar e visualizar suas contas bancárias, bem como manter o controle do saldo atual.
-- **Gerenciamento de Transações**: As transações podem ser registradas, incluindo informações como tipo (receita ou despesa), valor, categoria e data.
-- **Relatórios Financeiros**:
-  - **Relatório Mensal**: Um gráfico que exibe as receitas, despesas e o saldo por mês.
-  - **Relatório por Categoria**: Um gráfico de pizza mostrando as despesas agrupadas por categoria.
-- **Gestão de Anexos**: O usuário pode anexar PDFs (faturas ou comprovantes) às suas transações.
-- **Autenticação**: Sistema de login simples e autenticação baseada em **JWT** para garantir que cada usuário tenha acesso somente aos seus dados.
+Autenticação segura com JWT e Refresh Token por cookie HttpOnly
 
----
+API REST profissional com Django REST Framework
 
-## Tecnologias Utilizadas 🧑‍💻
+Integração total com o frontend em React
 
-- **Backend**: Django, Django REST Framework, JWT Authentication
-- **Frontend**: React, Redux (para gerenciamento de estado), Axios (para requisições HTTP)
-- **Banco de Dados**: SQLite
-- **Outros**: Docker, Git
+Upload seguro de PDFs
 
----
+Relatórios financeiros e categorização de despesas
 
-## Como Rodar o Projeto Localmente 🏡
+Uma base perfeita para evoluir para um sistema financeiro real
 
-### 1. Requisitos 📦
+Além de servir como case para estudos, entrevistas e portfólio — é um projeto que você pode realmente usar no seu dia a dia para organizar sua vida financeira.
 
-- **Python 3.8+** (para o backend)
-- **Node.js 16+** (para o frontend)
-- **Django 5.x**
-- **React 18.x**
+✨ Principais Funcionalidades
+🏦 Gestão de Contas
 
-### 2. Configuração do Backend (Django) 🔧
+Cadastre suas contas bancárias ou carteiras
 
-#### Passos:
+Acompanhe saldo inicial e saldo atualizado automaticamente
 
-1. **Clone o repositório**:
-    ```bash
-    git clone https://github.com/username/financefy.git
-    cd financefy
-    ```
+💰 Transações Inteligentes
 
-2. **Crie e ative o ambiente virtual**:
-    ```bash
-    python -m venv .venv
-    source .venv/bin/activate  # Para Linux/Mac
-    .venv\Scripts\activate     # Para Windows
-    ```
+Registre receitas e despesas
 
-3. **Instale as dependências do backend**:
-    ```bash
-    pip install -r backend/requirements.txt
-    ```
+Categorize gastos (ex.: Alimentação, Lazer, Saúde…)
 
-4. **Configure o banco de dados**:
-    ```bash
-    python backend/manage.py migrate
-    ```
+Acompanhe valores, datas e descrições
 
-5. **Crie um superusuário para acessar a interface administrativa**:
-    ```bash
-    python backend/manage.py createsuperuser
-    ```
+Tudo filtrável e organizado
 
-6. **Inicie o servidor Django**:
-    ```bash
-    python backend/manage.py runserver
-    ```
+📊 Relatórios Visuais
 
-Agora, o backend estará rodando em [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
+Relatório Mensal: Veja o balanço de receitas, despesas e saldo
 
-### 3. Configuração do Frontend (React) 💻
+Relatório por Categoria: Visualize onde você mais gasta
 
-#### Passos:
+Ideais para entender padrões financeiros
 
-1. **Vá para o diretório do frontend**:
-    ```bash
-    cd frontend
-    ```
+📎 Gestão de Anexos
 
-2. **Instale as dependências do frontend**:
-    ```bash
-    npm install
-    ```
+Envie PDFs como faturas e comprovantes
 
-3. **Inicie o servidor de desenvolvimento**:
-    ```bash
-    npm start
-    ```
+Cada arquivo é validado e armazenado com segurança
 
-Agora, o frontend estará disponível em [http://localhost:3000](http://localhost:3000).
+Organizado por transações e grupos de anexos
 
----
+🔐 Autenticação Segura
 
-## Estrutura de Diretórios 📁
+Login via JWT (token de acesso + refresh seguro via cookie HttpOnly)
 
-```bash
-financefy/
-├── backend/                   # Backend Django
-│   ├── finance/                # Aplicação principal (Contas, Transações, Anexos)
-│   │   ├── migrations/         # Migrações do banco de dados
-│   │   ├── models.py           # Modelos de dados (Contas, Transações, Anexos)
-│   │   ├── api/                # APIs REST
-│   │   │   ├── attachments.py  # Serializers e ViewSets para Anexos
-│   │   │   ├── transactions.py # Serializers e ViewSets para Transações
-│   │   │   └── accounts.py     # Serializers e ViewSets para Contas
-│   │   └── views.py            # Views da aplicação
-│   ├── settings.py             # Configurações do Django
-│   ├── urls.py                 # Roteamento de URLs
-│   └── manage.py               # Script de gerenciamento do Django
-├── frontend/                   # Frontend React
-│   ├── public/                 # Arquivos estáticos (HTML, imagens)
-│   ├── src/                    # Código fonte React
-│   │   ├── components/         # Componentes reutilizáveis
-│   │   ├── pages/              # Páginas principais
-│   │   ├── api/                # Funções para fazer requisições HTTP
-│   │   ├── reducers/           # Gerenciamento de estado (Redux)
-│   │   └── App.js              # Componente principal
-│   └── package.json            # Dependências do frontend
-└── README.md                   # Documentação do projeto
+Somente o usuário tem acesso às suas contas, transações e anexos
+
+Pensado para privacidade e segurança real
+
+🧰 Tecnologias Utilizadas
+🖥️ Backend
+
+Django 5
+
+Django REST Framework
+
+SimpleJWT (com refresh seguro por cookie)
+
+Django Filter
+
+DRF Spectacular (Swagger e ReDoc)
+
+SQLite
+
+💻 Frontend
+
+React + TypeScript
+
+Context API para autenticação
+
+Axios para comunicação com backend
+
+Gráficos modernos para relatórios
+
+🧱 Infraestrutura
+
+Ambiente isolado com venv
+
+Estrutura limpa e modular
+
+Suporte a deploy futuro
+
+🚀 Como Rodar o Projeto
+📌 1. Clone o repositório
+git clone https://github.com/username/financefy.git
+cd financefy
+
+🛠️ Backend (Django) — Configuração
+▶️ 1. Crie o ambiente virtual
+python -m venv .venv
+
+
+Ative:
+
+Windows
+
+.venv\Scripts\activate
+
+
+Linux/Mac
+
+source .venv/bin/activate
+
+▶️ 2. Instale dependências
+pip install -r backend/requirements.txt
+
+▶️ 3. Migre o banco de dados
+python backend/manage.py migrate
+
+▶️ 4. Crie um usuário administrativo
+python backend/manage.py createsuperuser
+
+▶️ 5. Inicie o servidor
+python backend/manage.py runserver
+
+
+A API estará disponível em:
+
+🔗 http://127.0.0.1:8000/api/docs
+
+(Interface Swagger pronta para uso!)
+
+💻 Frontend (React) — Configuração
+▶️ 1. Acesse o frontend
+cd financefy-web
+
+▶️ 2. Instale dependências
+npm install
+
+▶️ 3. Inicie o projeto
+npm start
+
+
+A aplicação estará disponível em:
+🔗 http://localhost:5173
+
+🤝 Contribuindo
+
+Este projeto foi pensado para ser expandido.
+Ideias de evolução:
+
+Dashboard com IA para previsões financeiras
+
+Exportação de relatórios em PDF
+
+Suporte a múltiplos bancos
+
+Pull requests são sempre bem-vindos!
+
+❤️ Finalizando
+
+O Financefy é mais do que um projeto:
+é uma demonstração real de backend profissional, frontend moderno e boas práticas de segurança.
+
+Se você está construindo seu portfólio, parabéns — esse projeto impressiona recrutadores 👏
+E se estiver usando para aprendizado, melhor ainda: aqui você treina Django, React, JWT, segurança, organização de pastas e muito mais.

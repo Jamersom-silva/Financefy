@@ -1,24 +1,28 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# ================
+# BACKEND (Django)
+# ================
+backend/__pycache__/
+backend/**/*.pyc
+backend/**/*.pyo
+backend/.venv/
+backend/db.sqlite3
+backend/db.sqlite3-journal
+backend/media/
+backend/staticfiles/
+backend/.env
 
-node_modules
-dist
-dist-ssr
-*.local
+# ================
+# FRONTEND (React)
+# ================
+financefy-web/node_modules/
+financefy-web/dist/
+financefy-web/.vscode/
+financefy-web/.env
+financefy-web/.env.*
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# ================
+# Global ignores
+# ================
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+*.log
