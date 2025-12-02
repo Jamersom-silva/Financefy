@@ -1,6 +1,7 @@
 import { toast } from "react-hot-toast";
 
-const API_BASE_URL = "http://127.0.0.1:8000/api/v1";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000/api/v1";
 
 function getAuthHeaders(): Record<string, string> {
   const token = localStorage.getItem("token");
@@ -47,7 +48,7 @@ async function handleErrorResponse(res: Response): Promise<never> {
 export async function apiGet<T = unknown>(endpoint: string): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
     method: "GET",
-    credentials: "include", // <<-- envia cookie HttpOnly também
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...getAuthHeaders(),
@@ -74,7 +75,7 @@ export async function apiRequest<T = unknown>(
 
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
     method,
-    credentials: "include", // <<-- importante para endpoints que dependem de cookie
+    credentials: "include",
     headers,
     body: isMultipart ? (body as FormData) : body ? JSON.stringify(body) : null,
   });
