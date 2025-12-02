@@ -1,8 +1,7 @@
 from pathlib import Path
 from datetime import timedelta
-from decouple import config, Csv
+from decouple import config
 import dj_database_url
-
 from corsheaders.defaults import default_headers
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -12,7 +11,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ==============================================================================
 SECRET_KEY = config("SECRET_KEY", default="dev-secret-key")
 DEBUG = config("DEBUG", default=True, cast=bool)
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    ".onrender.com",  # backend do Render
+]
 
 
 # ==============================================================================
@@ -45,12 +49,14 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+
+    # Whitenoise para servir STATIC no Render
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
 
-    # CSRF
     "django.middleware.csrf.CsrfViewMiddleware",
-
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -58,27 +64,26 @@ MIDDLEWARE = [
 
 
 # ==============================================================================
-# 🔹 CORS / CSRF — CONFIG CORRETA PARA VITE (5173)
+# 🔹 CORS / CSRF — LOCAL + PRODUÇÃO (Vercel)
 # ==============================================================================
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://*.vercel.app",  # frontend deployado
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://*.vercel.app",
 ]
 
-# 🔥 O ERRO DE CORS ESTAVA AQUI!
-# "*" NÃO FUNCIONA PARA HEADERS — ESTA É A CONFIGURAÇÃO CORRETA
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "content-type",
 ]
 
-# Permite navegador ler Set-Cookie
 CORS_EXPOSE_HEADERS = ["Set-Cookie"]
 
 
@@ -107,10 +112,16 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 
 # ==============================================================================
-# 🔹 DATABASE
+# 🔹 DATABASE (Render → PostgreSQL | Local → SQLite)
 # ==============================================================================
-DATABASE_URL = config("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
-DATABASES = {"default": dj_database_url.parse(DATABASE_URL)}
+DATABASE_URL = config(
+    "DATABASE_URL",
+    default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+)
+
+DATABASES = {
+    "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+}
 
 
 # ==============================================================================
@@ -134,10 +145,12 @@ USE_TZ = True
 
 
 # ==============================================================================
-# 🔹 STATIC / MEDIA
+# 🔹 STATIC / MEDIA (Render + Whitenoise)
 # ==============================================================================
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -156,7 +169,6 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ),
 
-    # Filters
     "DEFAULT_FILTER_BACKENDS": (
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.SearchFilter",
@@ -165,11 +177,10 @@ REST_FRAMEWORK = {
 
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 
-    # Throttle (inclui login throttle)
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
-        "core.api.throttles.LoginThrottle", 
+        "core.api.throttles.LoginThrottle",
     ],
 
     "DEFAULT_THROTTLE_RATES": {
@@ -194,9 +205,8 @@ SIMPLE_JWT = {
 
     "AUTH_HEADER_TYPES": ("Bearer",),
 
-    # Cookies
     "AUTH_COOKIE": JWT_REFRESH_COOKIE_NAME,
-    "AUTH_COOKIE_SECURE": False,  # True em produção
+    "AUTH_COOKIE_SECURE": not DEBUG,  # seguro em produção
     "AUTH_COOKIE_HTTP_ONLY": True,
     "AUTH_COOKIE_SAMESITE": "Lax",
     "AUTH_COOKIE_PATH": "/",
@@ -219,7 +229,7 @@ SPECTACULAR_SETTINGS = {
 
 
 # ==============================================================================
-# 🔹 PRODUÇÃO — SEGURANÇA
+# 🔹 SEGURANÇA EXTRA EM PRODUÇÃO
 # ==============================================================================
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
@@ -231,16 +241,11 @@ if not DEBUG:
 
 
 # ==============================================================================
-# 🔹 LOGGING OPCIONAL
+# 🔹 LOGGING
 # ==============================================================================
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {
-        "console": {"class": "logging.StreamHandler"},
-    },
-    "root": {
-        "handlers": ["console"],
-        "level": "INFO",
-    },
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["console"], "level": "INFO"},
 }
