@@ -17,10 +17,16 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ["id", "username", "email", "password"]
 
     def validate_username(self, value):
-        if len(value.strip()) < 3:
+        value = value.strip()
+        if len(value) < 3:
             raise serializers.ValidationError("O nome de usuário deve ter pelo menos 3 caracteres.")
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError("Este nome de usuário já está em uso.")
+        return value
+
+    def validate_email(self, value):
+        if value and User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Este e-mail já está em uso.")
         return value
 
     def validate_password(self, value):
@@ -33,6 +39,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             email=validated_data.get("email"),
             password=validated_data["password"],
         )
+
 
 # ================================================================
 # 🔹 CONTA
@@ -57,6 +64,7 @@ class AccountSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("O saldo inicial não pode ser negativo.")
         return value
 
+
 # ================================================================
 # 🔹 CATEGORIA
 # ================================================================
@@ -69,9 +77,11 @@ class CategorySerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_at", "owner"]
 
     def validate_name(self, value):
-        if len(value.strip()) < 2:
+        value = value.strip()
+        if len(value) < 2:
             raise serializers.ValidationError("O nome da categoria deve ter pelo menos 2 caracteres.")
         return value
+
 
 # ================================================================
 # 🔹 TRANSAÇÃO
@@ -113,6 +123,7 @@ class TransactionSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
+        # categoria e tipo precisam ser iguais
         if data["category"].type != data["type"]:
             raise serializers.ValidationError(
                 "A categoria e a transação devem ter o mesmo tipo (receita/despesa)."
@@ -129,6 +140,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Essa categoria não pertence ao usuário logado.")
         return value
 
+
 # ================================================================
 # 🔹 ALTERAR PERFIL
 # ================================================================
@@ -138,9 +150,11 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
         fields = ["username", "email"]
 
     def validate_username(self, value):
-        if len(value.strip()) < 3:
+        value = value.strip()
+        if len(value) < 3:
             raise serializers.ValidationError("O nome de usuário deve ter pelo menos 3 caracteres.")
         return value
+
 
 # ================================================================
 # 🔹 ALTERAR SENHA
@@ -152,6 +166,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate_new_password(self, value):
         validate_password(value)
         return value
+
 
 # ================================================================
 # 🔹 ANEXOS (PDFs)
@@ -165,11 +180,9 @@ class AttachmentSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "owner", "uploaded_at"]
 
     def validate_file(self, value):
-        # Tamanho máximo
-        if value.size > 5 * 1024 * 1024:  # 5 MB
+        if value.size > 5 * 1024 * 1024:  # 5MB
             raise serializers.ValidationError("O arquivo não pode ultrapassar 5 MB.")
 
-        # Validação baseada no content_type (sem python-magic)
         if value.content_type not in ["application/pdf"]:
             raise serializers.ValidationError("Somente arquivos PDF são permitidos.")
 

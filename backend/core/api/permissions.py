@@ -1,25 +1,40 @@
 # backend/core/api/permissions.py
 from rest_framework import permissions
 
+
 class IsOwner(permissions.BasePermission):
     """
     Permite acesso apenas ao dono do objeto.
-    Compatível com objetos que tenham `owner` (FK) ou `owner_id`.
+    Funciona com modelos que tenham:
+        - atributo `owner` (User ou FK para User)
+        - OU atributo `owner_id`
     """
 
     def has_object_permission(self, request, view, obj):
-        user = getattr(request, "user", None)
+        user = request.user
+
         if not user or not user.is_authenticated:
             return False
 
-        # Prioriza atributo owner (FK)
-        owner = getattr(obj, "owner", None)
-        if owner is not None:
-            # owner pode ser usuário ou id; compara de forma segura
-            try:
-                return owner == user or getattr(owner, "id", None) == getattr(user, "id", None)
-            except Exception:
-                pass
+        # Se o objeto tem "owner", priorizamos esse campo
+        if hasattr(obj, "owner"):
+            owner = obj.owner
 
-        # Fallback para field owner_id (inteiro)
-        return getattr(obj, "owner_id", None) == getattr(user, "id", None)
+            # owner pode ser:
+            # - instância de User
+            # - FK que retorna um User
+            # - valor None
+            if owner:
+                if owner == user:
+                    return True
+
+                # fallback caso owner seja um SimpleLazyObject
+                if getattr(owner, "id", None) == user.id:
+                    return True
+
+        # Fallback seguro: compara owner_id se existir
+        if hasattr(obj, "owner_id"):
+            return obj.owner_id == user.id
+
+        # Se o objeto não tem owner nem owner_id, NÃO permitimos
+        return False
