@@ -12,10 +12,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("SECRET_KEY", default="dev-secret-key")
 DEBUG = config("DEBUG", default=True, cast=bool)
 
+CLIENT_URL = config("CLIENT_URL", default="http://localhost:5173")
+
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
-    ".onrender.com",  # backend do Render
+    ".onrender.com",  # backend no Render
 ]
 
 
@@ -64,26 +66,23 @@ MIDDLEWARE = [
 
 
 # ==============================================================================
-# 🔹 CORS / CSRF — LOCAL + PRODUÇÃO (Vercel)
+# 🔹 CORS / CSRF — PRODUÇÃO (Vercel) + LOCALHOST
 # ==============================================================================
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+    CLIENT_URL,                 # Frontend no Vercel
+    "http://localhost:5173",    # Dev local
     "http://127.0.0.1:5173",
-    "https://*.vercel.app",  # frontend deployado
 ]
 
 CSRF_TRUSTED_ORIGINS = [
+    CLIENT_URL,
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://*.vercel.app",
 ]
 
-CORS_ALLOW_HEADERS = list(default_headers) + [
-    "content-type",
-]
-
+CORS_ALLOW_HEADERS = list(default_headers) + ["content-type"]
 CORS_EXPOSE_HEADERS = ["Set-Cookie"]
 
 
@@ -125,7 +124,7 @@ DATABASES = {
 
 
 # ==============================================================================
-# 🔹 SENHAS
+# 🔹 VALIDADORES DE SENHA
 # ==============================================================================
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -206,7 +205,7 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 
     "AUTH_COOKIE": JWT_REFRESH_COOKIE_NAME,
-    "AUTH_COOKIE_SECURE": not DEBUG,  # seguro em produção
+    "AUTH_COOKIE_SECURE": not DEBUG,
     "AUTH_COOKIE_HTTP_ONLY": True,
     "AUTH_COOKIE_SAMESITE": "Lax",
     "AUTH_COOKIE_PATH": "/",
