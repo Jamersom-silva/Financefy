@@ -25,6 +25,7 @@ from ..models import Account, Category, Transaction, Attachment
 
 # Serializers
 from .serializers import (
+    LoginSerializer,
     RegisterSerializer,
     AccountSerializer,
     CategorySerializer,
@@ -100,6 +101,7 @@ def register_user(request):
 # 🔹 LOGIN
 # ================================================================
 @extend_schema(
+    request=LoginSerializer,
     responses={200: OpenApiResponse(description="Login realizado.")},
     tags=["Autenticação"]
 )
@@ -107,8 +109,11 @@ def register_user(request):
 @permission_classes([permissions.AllowAny])
 @throttle_classes([LoginThrottle])
 def login_user(request):
-    username = request.data.get("username")
-    password = request.data.get("password")
+    serializer = LoginSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    username = serializer.validated_data["username"]
+    password = serializer.validated_data["password"]
 
     user = authenticate(username=username, password=password)
 
