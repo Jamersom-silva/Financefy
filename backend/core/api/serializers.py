@@ -187,3 +187,10 @@ class AttachmentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Somente arquivos PDF são permitidos.")
 
         return value
+
+# ================================================================
+# 🔹 LOGIN
+# ================================================================
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
