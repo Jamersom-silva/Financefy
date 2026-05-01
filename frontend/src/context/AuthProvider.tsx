@@ -28,22 +28,25 @@ export type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // ---------------------------------------------------------------
-// API BASE
+// 🌐 API BASE (DEV + PROD)
 // ---------------------------------------------------------------
-const API_BASE_RAW = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/v1";
-const API_BASE = API_BASE_RAW.endsWith("/")
-  ? API_BASE_RAW.slice(0, -1)
-  : API_BASE_RAW;
+const API_BASE = (import.meta.env.VITE_API_BASE_URL ??
+  "http://127.0.0.1:8000/api/v1"
+).replace(/\/$/, "");
 
 function apiUrl(path: string) {
-  if (!path.startsWith("/")) path = "/" + path;
-  return `${API_BASE}${path}`;
+  return `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+// ---------------------------------------------------------------
+// 💾 STORAGE
+// ---------------------------------------------------------------
 const STORAGE_TOKEN = "token";
 const STORAGE_USER = "user";
 
-// helper JSON
+// ---------------------------------------------------------------
+// 🧠 JSON SAFE PARSE
+// ---------------------------------------------------------------
 async function safeJson(res: Response) {
   try {
     return await res.json();
@@ -52,6 +55,9 @@ async function safeJson(res: Response) {
   }
 }
 
+// ===============================================================
+// 🚀 AUTH PROVIDER
+// ===============================================================
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(() => {
     try {
@@ -73,7 +79,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   // ---------------------------------------------------------------
-  // SET SESSION
+  // 🔐 SET SESSION
   // ---------------------------------------------------------------
   const setSession = useCallback((access: string | null, userData: User | null) => {
     setAccessToken(access);
@@ -87,60 +93,69 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   // ---------------------------------------------------------------
-  // REFRESH ACCESS TOKEN (COOKIE HTTPONLY)
+  // 🔄 REFRESH TOKEN (COOKIE HTTPONLY)
   // ---------------------------------------------------------------
   const refreshAccessToken = useCallback(async () => {
     const url = apiUrl("/auth/refresh/");
-    console.log("[Auth] refreshAccessToken -> calling:", url);
+    console.log("[Auth] refreshAccessToken ->", url);
 
-    const res = await fetch(url, {
-      method: "POST",
-      credentials: "include", // envia cookie HttpOnly
-    });
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        credentials: "include",
+      });
 
-    console.log("[Auth] refresh response:", res.status);
+      const data = await safeJson(res);
 
-    const data = await safeJson(res);
-    console.log("[Auth] refresh body:", data);
+      if (!res.ok || !data?.access) {
+        throw new Error("Refresh falhou");
+      }
 
-    if (!res.ok || !data?.access) {
+      setAccessToken(data.access);
+      localStorage.setItem(STORAGE_TOKEN, data.access);
+
+    } catch (err) {
+      console.warn("[Auth] refresh falhou:", err);
       setSession(null, null);
-      throw new Error("Falha ao renovar token.");
+      throw err;
     }
-
-    localStorage.setItem(STORAGE_TOKEN, data.access);
-    setAccessToken(data.access);
   }, []);
 
   // ---------------------------------------------------------------
-  // LOGIN
+  // 🔐 LOGIN
   // ---------------------------------------------------------------
   const login = useCallback(async (username: string, password: string) => {
     const url = apiUrl("/auth/login/");
-    console.log("[Auth] login -> calling:", url);
+    console.log("[Auth] login ->", url);
 
     const res = await fetch(url, {
       method: "POST",
-      credentials: "include", // necessário para salvar refresh
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
     });
 
     const data = await safeJson(res);
 
-    if (!res.ok) throw new Error(data?.detail || "Erro ao fazer login.");
-    if (!data?.access || !data?.user)
+    if (!res.ok) {
+      throw new Error(data?.detail || "Erro ao fazer login.");
+    }
+
+    if (!data?.access || !data?.user) {
       throw new Error("Resposta inválida do servidor.");
+    }
 
     setSession(data.access, data.user);
   }, []);
 
   // ---------------------------------------------------------------
-  // REGISTER
+  // 🧾 REGISTER
   // ---------------------------------------------------------------
   const register = useCallback(
     async (username: string, email: string, password: string) => {
       const url = apiUrl("/auth/register/");
+      console.log("[Auth] register ->", url);
+
       const res = await fetch(url, {
         method: "POST",
         credentials: "include",
@@ -156,12 +171,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           data?.username?.[0] ||
           data?.password?.[0] ||
           data?.detail ||
-          "Erro ao registrar usuário.";
+          "Erro ao registrar.";
         throw new Error(msg);
       }
 
-      if (!data?.access || !data?.user)
+      if (!data?.access || !data?.user) {
         throw new Error("Resposta inválida do servidor.");
+      }
 
       setSession(data.access, data.user);
     },
@@ -169,32 +185,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   // ---------------------------------------------------------------
-  // LOGOUT
+  // 🚪 LOGOUT
   // ---------------------------------------------------------------
   const logout = useCallback(async () => {
     const url = apiUrl("/auth/logout/");
+
     try {
       await fetch(url, {
         method: "POST",
         credentials: "include",
       });
     } catch {
-      // Ignore errors during logout
+      // ignore
     }
+
     setSession(null, null);
   }, []);
 
   // ---------------------------------------------------------------
-  // AUTO LOGIN (SILENT REFRESH)
+  // ⚡ AUTO LOGIN (SILENT REFRESH)
   // ---------------------------------------------------------------
   useEffect(() => {
     (async () => {
       try {
         await refreshAccessToken();
+
         const raw = localStorage.getItem(STORAGE_USER);
         if (raw) setUser(JSON.parse(raw));
-      } catch (err) {
-        console.warn("[Auth] silent refresh failed:", err);
+
+      } catch {
         setSession(null, null);
       } finally {
         setLoading(false);
@@ -219,6 +238,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+// ---------------------------------------------------------------
+// 🧠 HOOK
+// ---------------------------------------------------------------
 export function useAuth(): AuthContextType {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
