@@ -4,37 +4,66 @@ services:
   backend:
     build: ./backend
     container_name: financefy-backend
-    ports:
-      - "8000:8000"
+
+    command: python manage.py runserver 0.0.0.0:8000
+
     volumes:
       - ./backend:/app
+
+    ports:
+      - "8000:8000"
+
     env_file:
-      - ./backend/.env
+      - .env
+
     depends_on:
       - db
+
+    networks:
+      - financefy-network
 
   frontend:
     build: ./frontend
     container_name: financefy-frontend
-    ports:
-      - "5173:5173"
+
+    command: npm run dev
+
     volumes:
       - ./frontend:/app
+      - /app/node_modules
+
+    ports:
+      - "3000:3000"
+
     stdin_open: true
-    tty: true
+
+    depends_on:
+      - backend
+
+    networks:
+      - financefy-network
 
   db:
     image: postgres:15
+
     container_name: financefy-db
-    restart: always
+
     environment:
       POSTGRES_DB: financefy
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+    ports:
+      - "5432:5432"
+
+    networks:
+      - financefy-network
+
 volumes:
   postgres_data:
+
+networks:
+  financefy-network:
