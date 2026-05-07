@@ -13,25 +13,29 @@ class FinanceAPITests(APITestCase):
         self.transactions_url = "/api/v1/transactions/"
         self.report_monthly_url = "/api/v1/reports/monthly/"
 
-        # 🔹 cria usuário
+        # 🔹 cria usuário (senha válida para validação do Django)
         payload = {
             "username": "jamersom",
             "email": "j@j.com",
-            "password": "12345"
+            "password": "Test@12345"
         }
 
         res = self.client.post(self.register_url, payload, format="json")
 
+        # debug útil caso falhe novamente
+        if res.status_code != status.HTTP_201_CREATED:
+            print("REGISTER ERROR RESPONSE:", res.data)
+
         # garante que o registro funcionou
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
-        # ⚠️ só funciona se seu register_user retornar token
+        # token retornado pelo backend
         self.access = res.data.get("access")
+        self.assertIsNotNone(self.access)
 
     def auth(self):
-        # autenticação com token (se existir)
-        if self.access:
-            self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access}")
+        # autenticação com JWT
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access}")
 
     def test_full_flow(self):
         self.auth()
@@ -71,5 +75,8 @@ class FinanceAPITests(APITestCase):
 
         # relatório mensal
         res = self.client.get(self.report_monthly_url + "?month=10&year=2025")
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(float(res.data["income"]), 3000.0)
+
+        # aceita float ou int do backend
+        self.assertEqual(float(res.data["total_income"]), 3000.0)
